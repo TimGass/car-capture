@@ -1,10 +1,10 @@
 import requests
 import socketio
 
-base_url = 'https://catracker-api.fly.dev/api/v1/garages/'
+base_url = 'https://cartracker-api.fly.dev/api/v1/garages/'
 
 sio = socketio.Client()
-sio.connect('https://catracker-api.fly.dev')
+sio.connect('https://cartracker-api.fly.dev')
 
 class Garage:
     def __init__(self, garage):
