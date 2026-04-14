@@ -9,7 +9,6 @@ ENV PYTHONFAULTHANDLER 1
 RUN apt-get update && apt-get install -y build-essential ffmpeg libsm6 libxext6
 
 COPY Pipfile .
-COPY Pipfile.lock .
 RUN python -m pip install --upgrade pip
 RUN python -m pip install cmake
 RUN python -m pip install pipenv
