@@ -4,3 +4,4 @@ venv/
 __pycache__/
 pyimagesearch/__pycache__/
 videos/cars_real_2.mp4
+Pipfile.lock
