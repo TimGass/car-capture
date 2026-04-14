@@ -1,26 +1,23 @@
-# fly.toml file generated for cartracker on 2023-03-06T21:15:19-06:00
+# fly.toml app configuration file generated for cartracker on 2026-04-14T16:57:27Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "cartracker"
-kill_signal = "SIGINT"
-kill_timeout = 5
-
-[env]
-
-[experimental]
-  auto_rollback = true
+app = 'cartracker'
+primary_region = 'iad'
 
 [build]
-  dockerfile = "Dockerfile"
 
 [http_service]
-  http_checks = []
   internal_port = 5000
-  processes = ["app"]
-  protocol = "tcp"
-  script_checks = []
   force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
 
-  [http_service.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024
