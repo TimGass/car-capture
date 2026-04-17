@@ -6,21 +6,31 @@ kill_timeout = 5
 
 [env]
 
-[experimental]
-  auto_rollback = true
-
 [build]
   dockerfile = "Dockerfile"
 
-[http_service]
-  http_checks = []
+[[services]]
   internal_port = 5000
   processes = ["app"]
   protocol = "tcp"
-  script_checks = []
   force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
 
-  [http_service.concurrency]
-    hard_limit = 25
-    soft_limit = 20
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true 
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [services.ports.http_options]
+    idle_timeout = 30
+
+  [service.concurrency]
+    hard_limit = 5
+    soft_limit = 3
     type = "connections"
