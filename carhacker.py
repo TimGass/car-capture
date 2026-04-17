@@ -224,8 +224,9 @@ def gen_frames(prototxt:str='./mobilenet_ssd/MobileNetSSD_deploy.prototxt', mode
                             to.counted = True
                             if available_spaces < garage.capacity:
                                 garage.cars_in_lot -= 1
+                                api.put_garage(garage)
                                 available_spaces += 1
-                                # api.put_garage(garage)
+ 
 
                         # if the direction is positive (indicating the object
                         # is moving down) AND the centroid is below the
@@ -236,11 +237,11 @@ def gen_frames(prototxt:str='./mobilenet_ssd/MobileNetSSD_deploy.prototxt', mode
                             if garage.cars_in_lot < garage.capacity:
                                 garage.cars_in_lot += 1
                                 available_spaces -= 1
-                                # api.put_garage(garage)
+                                api.put_garage(garage)
                             elif garage.cars_in_lot == garage.capacity:
                                 garage.cars_in_lot = 1
                                 available_spaces = garage.capacity - 1
-                                # api.put_garage(garage)
+                                api.put_garage(garage)
                                 
 
                 # store the trackable object in our dictionary
