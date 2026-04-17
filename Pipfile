@@ -1,19 +1,13 @@
 [packages]
-certifi = "*"
-chardet = "*"
 dlib = "*"
-idna = "*"
 imutils = "*"
 requests = "*"
 scipy = "*"
-urllib3 = "*"
 numpy = "*"
-opencv-contrib-python = "*"
-python-socketio = {extras = ["client"], version = "*"}
 flask = "*"
-eventlet = "*"
 flask-cors = "*"
-gunicorn = "*"
+python-socketio = "*"
+opencv-contrib-python= "*"
 
 [dev-packages]
 

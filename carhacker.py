@@ -12,11 +12,7 @@ import threading
 from flask import Flask, render_template, Response
 from flask_cors import CORS
 import socketio
-
-
-
-outputFrame = None
-lock = threading.Lock()
+import queue
 
 sio = socketio.Server(async_mode="threading", cors_allowed_origins="*", host="0.0.0.0", port=5000)
 app = Flask(__name__)
@@ -25,6 +21,9 @@ app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
 
 vs = None
 input = None
+t = None
+
+subscribers = []
 
 def gen_frames(prototxt:str='./mobilenet_ssd/MobileNetSSD_deploy.prototxt', model:str='./mobilenet_ssd/MobileNetSSD_deploy.caffemodel', output:str=None, confidence:float=0.4, skip_frames:int=2):
     global outputFrame, lock, vs, input
@@ -226,7 +225,7 @@ def gen_frames(prototxt:str='./mobilenet_ssd/MobileNetSSD_deploy.prototxt', mode
                             if available_spaces < garage.capacity:
                                 garage.cars_in_lot -= 1
                                 available_spaces += 1
-                                api.put_garage(garage)
+                                # api.put_garage(garage)
 
                         # if the direction is positive (indicating the object
                         # is moving down) AND the centroid is below the
@@ -237,11 +236,11 @@ def gen_frames(prototxt:str='./mobilenet_ssd/MobileNetSSD_deploy.prototxt', mode
                             if garage.cars_in_lot < garage.capacity:
                                 garage.cars_in_lot += 1
                                 available_spaces -= 1
-                                api.put_garage(garage)
+                                # api.put_garage(garage)
                             elif garage.cars_in_lot == garage.capacity:
                                 garage.cars_in_lot = 1
                                 available_spaces = garage.capacity - 1
-                                api.put_garage(garage)
+                                # api.put_garage(garage)
                                 
 
                 # store the trackable object in our dictionary
@@ -273,17 +272,14 @@ def gen_frames(prototxt:str='./mobilenet_ssd/MobileNetSSD_deploy.prototxt', mode
         if writer is not None:
             writer.write(frame)
             
-        with lock:
+        for client in subscribers:
             outputFrame = frame.copy()
             (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
             if flag:
-                sio.emit('frame', encodedImage.tobytes())
+                client.put(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
+                bytearray(encodedImage) + b'\r\n')
         # increment the total number of frames processed thus far
         totalFrames += 1
-
-    # check to see if we need to release the video writer pointer
-    if writer is not None:
-        writer.release()
         
 
 # Uncomment for flask server integration
@@ -309,11 +305,23 @@ def gen_frames(prototxt:str='./mobilenet_ssd/MobileNetSSD_deploy.prototxt', mode
 
 # @app.route('/')
 # def index():
-#   return render_template('index.html')
-  
-# @app.route('/video_feed')
-# def video_feed():
-#   return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+#   return render_template('index.html') 
+
+@app.route('/video_feed')
+def video_feed():
+  try:
+      yolo = queue.Queue(maxsize=10)
+      subscribers.append(yolo)
+      def popQueue():
+          while True:
+              try:
+                  yield yolo.get_nowait()
+              except queue.Empty:
+                  yield b''
+  except GeneratorExit:
+      print("Client disconnected, stopping process")
+      subscribers.remove(yolo)
+  return Response(popQueue(), mimetype='multipart/x-mixed-replace; boundary=frame')
  
 if __name__ == "__main__":
   # construct the argument parser and parse command line arguments
